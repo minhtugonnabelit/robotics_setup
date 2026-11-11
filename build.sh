@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker buildx build \
-    -f dockerfiles/base/Dockerfile.arm64 \
-    -t dkhoanguyen/robotic_base:latest .
+docker build \
+    -f dockerfiles/base/Dockerfile.humble.arm64 \
+    -t dkhoanguyen/robotic_humble_base:latest .
 

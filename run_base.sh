@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if grep -q 'BCM' /proc/cpuinfo && grep -q 'Raspberry Pi' /sys/firmware/devicetree/base/model; then
+if grep -q 'Raspberry Pi' /sys/firmware/devicetree/base/model 2>/dev/null; then
     echo "This is a Raspberry Pi. Proceeding with the command."
     # Configure RPI Wifi access point
     # Prerequisites
@@ -30,23 +30,22 @@ docker run -d --name "rosbridge" \
     --privileged \
     --restart "always" \
     --network "host" \
-    -e ROS_MASTER_URI="http://localhost:11311" \
-    -e ROS_IP="192.168.27.1" \
-    dkhoanguyen/robotic_base:latest \
-    bash -c "source /opt/ros/noetic/setup.bash && source /ur_ws/devel/setup.bash && \
-             roslaunch rosbridge_server rosbridge_websocket.launch"
+    --ipc "host" \
+    dkhoanguyen/robotic_humble_base:latest \
+    bash -c "source /opt/ros/humble/setup.bash && source /ur_onrobot_ws/install/setup.bash && \
+             ros2 launch rosbridge_server rosbridge_websocket_launch.xml"
 
-# Supervisor
-docker run -d --name "robotics_supervisor" \
-  --tty \
-  --privileged \
-  --restart "always" \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -e WATCHTOWER_CLEANUP=true \
-  -e WATCHTOWER_INCLUDE_STOPPED=true \
-  -e WATCHTOWER_INCLUDE_RESTARTING=true \
-  -e WATCHTOWER_HTTP_API_TOKEN=robotics \
-  -e WATCHTOWER_HTTP_API_PERIODIC_POLLS=true \
-  -p 8080:8080 \
-  --label=com.centurylinklabs.watchtower.enable=false \
-  dkhoanguyen/robotics_supervisor:latest --interval 300 --http-api-update --port 8080
+# # Supervisor
+# docker run -d --name "robotics_supervisor" \
+#   --tty \
+#   --privileged \
+#   --restart "always" \
+#   -v /var/run/docker.sock:/var/run/docker.sock \
+#   -e WATCHTOWER_CLEANUP=true \
+#   -e WATCHTOWER_INCLUDE_STOPPED=true \
+#   -e WATCHTOWER_INCLUDE_RESTARTING=true \
+#   -e WATCHTOWER_HTTP_API_TOKEN=robotics \
+#   -e WATCHTOWER_HTTP_API_PERIODIC_POLLS=true \
+#   -p 8080:8080 \
+#   --label=com.centurylinklabs.watchtower.enable=false \
+#   dkhoanguyen/robotics_supervisor:latest --interval 300 --http-api-update --port 8080

@@ -6,7 +6,7 @@
     },
     "host_apd_cfg": {
         "ip": "192.168.27.1",
-        "ssid": "rpi3_default",
+        "ssid": "robotics_3083e10a",
         "wpa_passphrase": "robotics",
         "channel": "6"
     },

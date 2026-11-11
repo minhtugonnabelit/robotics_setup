@@ -1,0 +1,46 @@
+FROM arm64v8/ros:humble-ros-base as robotics-base-arm64v8
+
+# Setup basic
+RUN apt update && apt install -y \
+    git \
+    gcc \
+    curl \
+    wget \
+    python3-colcon-common-extensions \
+    python3-pip \
+    libnet1-dev \
+    libudev-dev \
+    qtbase5-dev \
+    qtdeclarative5-dev \
+    qtmultimedia5-dev \
+    qtquickcontrols2-5-dev && \
+    pip3 install flask waitress opencv-python numpy datetime
+
+# Expose port for bridge
+EXPOSE 9090
+EXPOSE 11311
+
+# rosbridge
+RUN apt update && apt install -y ros-humble-rosbridge-server ros-humble-ament-cmake python3-vcstool
+
+## UR CONTROLLER ##
+# Folder for storing kinematic calibration target
+RUN mkdir calibration_file
+
+# Configure ur_onrobot_ws
+RUN mkdir -p ur_onrobot_ws/src && \
+    echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \
+    cd ur_onrobot_ws && \
+    git clone https://github.com/tonydle/UR_OnRobot_ROS2.git src/ur_onrobot && \
+    vcs import src --input src/ur_onrobot/required.repos --recursive && \
+    rosdep install -y --from-paths src --ignore-src
+
+# Build ur_onrobot_ws
+RUN bin/bash -c "source /opt/ros/humble/setup.bash && \
+    cd ur_onrobot_ws && \
+    colcon build --symlink-install && \
+    source install/setup.bash"
+
+# Custom ENTRYPOINT
+COPY scripts/ros_entrypoint.sh /ros_entrypoint.sh
+RUN chmod +x /ros_entrypoint.sh
